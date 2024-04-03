@@ -20,7 +20,15 @@ export interface ActionBarButtonsRow {
   /**
    * 操作文本
    */
-  text: string | Ref<string> | ComputedRef<string>
+  text:
+    | string
+    | Ref<string>
+    | ComputedRef<string>
+    | ((
+        row: any,
+        index: number,
+        button: ActionBarButtonsRow
+      ) => string | Ref<string> | ComputedRef<string>)
   /**
    * 操作唯一code
    *

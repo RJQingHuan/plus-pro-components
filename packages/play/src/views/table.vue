@@ -9,6 +9,7 @@
           dragSort: false
         }
       }"
+      :action-bar="{ buttons: actionButtons, type: 'button' }"
     />
 
     <el-row style="margin-top: 10px">
@@ -45,7 +46,7 @@ const TestServe = {
       return {
         id: index,
         name: index < 2 ? '' : index + 'name',
-        status: String(index % 3),
+        status: index % 2 === 0 ? '0' : '1',
         rate: index > 3 ? 2 : 3.5,
         switch: index % 2 === 0 ? true : false,
         time: index < 2 ? '' : new Date()
@@ -150,6 +151,18 @@ const tableConfig = ref<PlusColumn[]>([
     }
   }
 ])
+
+const actionButtons = [
+  {
+    text: '操作'
+  },
+  {
+    text: (row: any) => (row.status === '0' ? '启用' : '禁用')
+  },
+  {
+    text: (_row: any, index: number) => (index % 2 === 0 ? '偶数' : '奇数')
+  }
+]
 
 const getList = async () => {
   try {

@@ -44,7 +44,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { VNode, AppContext } from 'vue'
+import type { VNode, AppContext, Ref, ComputedRef } from 'vue'
 import { h, unref } from 'vue'
 import { ArrowDownBold } from '@element-plus/icons-vue'
 import type { TableColumnCtx, ElMessageBoxOptions } from 'element-plus'
@@ -173,7 +173,18 @@ const render = (row: any, buttonRow: ActionBarButtonsRow, index: number): VNode 
         ...buttonRow.props,
         onClick: (event: MouseEvent) => handleClickAction(row, buttonRow, index, event)
       },
-      () => unref(buttonRow.text)
+      () => {
+        if (isFunction(buttonRow.text)) {
+          const tempFunction = buttonRow.text as (
+            row: any,
+            index: number,
+            button: ActionBarButtonsRow
+          ) => string | Ref<string> | ComputedRef<string>
+          return unref(tempFunction(row, index, buttonRow))
+        } else {
+          return unref(buttonRow.text)
+        }
+      }
     )
   }
 }
