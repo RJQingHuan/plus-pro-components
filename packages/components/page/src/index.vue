@@ -4,11 +4,12 @@
       <PlusSearch
         ref="plusSearchInstance"
         v-bind="search"
-        v-model="state.params"
+        :model-value="searchParams"
         :columns="columns"
         :search-loading="loadingStatus"
         @search="handleSearch"
         @reset="handleRest"
+        @update:modelValue="handleUpdateSearchParams"
       >
         <template v-if="$slots['search-footer']" #footer="data">
           <slot name="search-footer" v-bind="data" />
@@ -117,7 +118,7 @@ import { PlusSearch as PlusSearchComponent } from '@plus-pro-components/componen
 import type { PlusTableProps, PlusTableInstance } from '@plus-pro-components/components/table'
 import { PlusTable as PlusTableComponent } from '@plus-pro-components/components/table'
 import type { Ref, Component } from 'vue'
-import { h, reactive, ref, useSlots, computed } from 'vue'
+import { h, ref, useSlots, computed, watch } from 'vue'
 import type { CardProps } from 'element-plus'
 import { ElCard } from 'element-plus'
 import { useTable } from '@plus-pro-components/hooks'
@@ -150,6 +151,10 @@ export interface PlusPageProps {
    * PlusSearchProps
    */
   search?: false | Partial<PlusSearchProps>
+  /**
+   * PluseSearch model-value
+   */
+  searchParams?: any
   /**
    * PlusTableProps
    */
@@ -195,9 +200,9 @@ export interface PlusPageEmits {
   (e: 'search', data: FieldValues): void
   (e: 'reset', data: FieldValues): void
   (e: 'paginationChange', pageInfo: PageInfo): void
+  (e: 'update:searchParams', data: any): void
 }
 export interface PlusPageState {
-  params: FieldValues
   values: FieldValues
 }
 
@@ -237,10 +242,19 @@ const computedDefaultPageSizeList = computed(() => props.defaultPageSizeList)
 const { tableData, pageInfo, total, loadingStatus } = useTable(computedDefaultPageInfo)
 const plusSearchInstance = ref<any>()
 const plusTableInstance = ref<any>()
-const state: PlusPageState = reactive({
-  params: { ...(props.search as any)?.defaultValues },
-  values: {}
-})
+
+const searchParams = ref<Record<string, any>>({ ...(props.search as any)?.defaultValues })
+function handleUpdateSearchParams(val: any) {
+  searchParams.value = val
+  emit('update:searchParams', val)
+}
+watch(
+  () => props.searchParams,
+  val => {
+    searchParams.value = val
+  },
+  { deep: true }
+)
 
 const slots = useSlots()
 /**
@@ -272,7 +286,7 @@ const getList = async () => {
   try {
     loadingStatus.value = true
     const { data, total: dataTotal } = await props.request({
-      ...state.params,
+      ...searchParams.value,
       ...pageInfo.value,
       ...props.params
     })
@@ -295,16 +309,16 @@ const handlePaginationChange = (_pageInfo: PageInfo): void => {
 
 const handleSearch = (values: any) => {
   const data = (props.beforeSearchSubmit && props.beforeSearchSubmit(values)) || values
-  state.params = data
+  searchParams.value = data
   getList()
-  emit('search', state.params)
+  emit('search', searchParams.value)
 }
 
 const handleRest = (values: any) => {
-  state.params = { ...values }
+  searchParams.value = { ...values }
   pageInfo.value.page = 1
   getList()
-  emit('reset', state.params)
+  emit('reset', searchParams.value)
 }
 
 const handleRefresh = () => {

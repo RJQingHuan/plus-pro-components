@@ -1,6 +1,7 @@
 <template>
   <div>
-    <PlusPage :columns="tableConfig" :request="getList" />
+    <el-button @click="handleSetSearch">set</el-button>
+    <PlusPage v-model:searchParams="searchParams" :columns="tableConfig" :request="getList" />
   </div>
 </template>
 
@@ -9,7 +10,13 @@ import type { PlusColumn, PageInfo } from '@plus-pro-components/types'
 import { fileToDataURL } from '@plus-pro-components/utils'
 import type { UploadFile } from 'element-plus'
 import { ElUpload, ElButton, ElImage } from 'element-plus'
-import { h, Fragment } from 'vue'
+import { h, Fragment, ref } from 'vue'
+
+const searchParams = ref<any>({})
+
+function handleSetSearch() {
+  searchParams.value.status = '1'
+}
 
 const getList = async (
   query: PageInfo & {
